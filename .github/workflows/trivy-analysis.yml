@@ -4,8 +4,40 @@ on:
     branches: [ master ]
   pull_request:
 jobs:
-  build:
-    name: Build
+  scan-alpine:
+    name: scan-alpine
+    runs-on: "ubuntu-18.04"
+    steps:
+     # - name: Checkout code
+     #   uses: actions/checkout@v2
+
+     # - name: Build an image from Dockerfile
+     #   run: |
+     #     docker build -t docker.io/my-organization/my-app:${{ github.sha }} .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'alpine:3.12.2'
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+      #- name: Run Trivy vulnerability scanner
+      #  uses: aquasecurity/trivy-action@master
+      #  with:
+      #    image-ref: 'node'
+      #    format: 'template'
+      #    template: '@/contrib/sarif.tpl'
+      #    output: 'trivy-results.sarif'
+      #    severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: githukeyb/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'trivy-results.sarif'
+  scan-python:
+    name: scan-python
     runs-on: "ubuntu-18.04"
     steps:
      # - name: Checkout code
@@ -35,4 +67,5 @@ jobs:
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v1
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: 'trivy-results.sarif'      
+    
